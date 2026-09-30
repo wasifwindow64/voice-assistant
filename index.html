@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Assistant</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #1a1a2e, #0d0d1a);
+    font-family: Arial, sans-serif;
+    color: white;
+    text-align: center;
+  }
+  h1 { margin-bottom: 10px; }
+  #status { color: #7fffd4; margin-bottom: 30px; min-height: 24px; }
+  #mic-btn {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #ff2d78;
+    border: none;
+    font-size: 40px;
+    color: white;
+    box-shadow: 0 0 30px #ff2d78aa;
+    cursor: pointer;
+  }
+  #mic-btn.listening {
+    animation: pulse 1s infinite;
+    background: #00e0d3;
+    box-shadow: 0 0 40px #00e0d3aa;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  #log {
+    margin-top: 30px;
+    max-width: 90%;
+    font-size: 14px;
+    color: #aaa;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎙️ Voice Assistant</h1>
+<div id="status">Mic dabao aur boliye</div>
+<button id="mic-btn">🎤</button>
+<div id="log"></div>
+
+<script>
+const statusEl = document.getElementById('status');
+const logEl = document.getElementById('log');
+const micBtn = document.getElementById('mic-btn');
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (!SpeechRecognition) {
+  statusEl.textContent = "Ye browser support nahi karta. Android Chrome use karo.";
+} else {
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'en-IN';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  function bolo(text) {
+    logEl.textContent = "Assistant: " + text;
+    const utter = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(utter);
+  }
+
+  function commandChalao(command) {
+    command = command.toLowerCase();
+
+    if (command.includes("youtube")) {
+      bolo("YouTube khol raha hoon");
+      window.open("https://youtube.com", "_blank");
+
+    } else if (command.includes("google") && command.includes("search")) {
+      let query = command.replace("google", "").replace("search", "").replace("karo", "").trim();
+      if (query === "") {
+        bolo("Kya search karna hai?");
+      } else {
+        bolo(query + " search kar raha hoon");
+        window.open("https://www.google.com/search?q=" + encodeURIComponent(query), "_blank");
+      }
+
+    } else if (command.includes("whatsapp")) {
+      bolo("WhatsApp khol raha hoon");
+      window.open("https://web.whatsapp.com", "_blank");
+
+    } else if (command.includes("gmail")) {
+      bolo("Gmail khol raha hoon");
+      window.open("https://mail.google.com", "_blank");
+
+    } else if (command.includes("time")) {
+      const now = new Date();
+      bolo("Abhi " + now.getHours() + " baj kar " + now.getMinutes() + " minute hue hain");
+
+    } else {
+      bolo("Ye command samajh nahi aayi");
+    }
+  }
+
+  recognition.onstart = () => {
+    statusEl.textContent = "Sun raha hoon...";
+    micBtn.classList.add('listening');
+  };
+
+  recognition.onend = () => {
+    statusEl.textContent = "Mic dabao aur boliye";
+    micBtn.classList.remove('listening');
+  };
+
+  recognition.onresult = (event) => {
+    const command = event.results[0][0].transcript;
+    logEl.textContent = "Tumne kaha: " + command;
+    commandChalao(command);
+  };
+
+  recognition.onerror = (event) => {
+    statusEl.textContent = "Error: dobara try karo";
+  };
+
+  micBtn.addEventListener('click', () => {
+    recognition.start();
+  });
+}
+</script>
+
+</body>
+</html>
